@@ -1,0 +1,144 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div class="container" id="initialdiv" style="padding:20px">
+    <label for="selectFiles" style="font-size:medium;font-weight:bold">Upload Json File</label>
+<input type="file" id="selectFiles" class="form-control" value="Import" style="margin:10px" />
+
+    <span style="font-size:medium;font-weight:bold">Or paste your json in below comment box.</span>
+
+<textarea id="result" class="form-control" rows="10" style="margin:10px"></textarea>
+
+    <button class="btn btn-info" id="import" onclick="isValidJSON()" style="margin:10px">Import</button>
+</div>
+
+<div class="container" id="Maindiv">
+
+
+</div>
+
+<script>
+
+
+    function Save(){
+        var text=$("#txt").val();
+        var gender = $("input[name='gender']:checked").val();
+
+        // Get the values of selected hobbies
+        var hobbies ="";
+        $("input[name='hobbies']:checked").each(function () {
+            hobbies += $(this).val() + ',';
+        });
+        console.log('success');
+
+        inserRecord(text, gender, hobbies);
+    
+    
+    
+    }
+ 
+    function reset(){
+        $("#txt").val('');
+        $('input[name="gender"]').prop("checked", false);
+        $('input[name="hobbies"]').prop('checked', false);
+    }
+
+
+    function inserRecord(name,gender,hobbies){
+        $.ajax({
+            url: 'Home/inserintoDb',
+            type:'Post',
+            data:{Name:name,Gender:gender,Hobby:hobbies},
+            success:function(data){
+            console.log('Success');
+            reset();
+            },
+            error: function (data) {
+                console.log('Error');
+            }
+        
+        
+        
+        
+        });
+
+    }
+
+
+    $(document).on('change', '#selectFiles', function (event) {
+        var reader = new FileReader();
+
+        reader.onload = function (event) {
+            try {
+                var jsonObj = JSON.parse(event.target.result);
+                $("#initialdiv").css("display", "none");
+                createForm(jsonObj);
+            }
+            catch(e){
+                $("#initialdiv").css("display", "");
+                alert('Please Upload a valid json file');
+
+            }
+            
+        }
+
+        reader.readAsText(event.target.files[0]);
+    });
+function isValidJSON() {
+
+        var jsonString = document.getElementById("result").value;
+        if (jsonString !="")
+        {
+        var temp = JSON.parse(jsonString);
+
+         $("#initialdiv").css("display","none");
+        createForm(temp);
+        }
+        else
+        {
+            alert('Please Upload a json File or insert into Fields');
+        }
+}
+
+function createForm(data){
+
+    for(var i=0;i<data.form.length;i++)
+    {
+            if (data.form[i].type == "text")
+            {
+                var append = "<div class=row><label for='txt'>" + data.form[i].label + "</label><br /> <input type=text class=form-control id='txt' style='margin-top:10px'></div>"
+           $("#Maindiv").append(append);
+            }
+
+            if (data.form[i].type == "radio") {
+                var append = "<div class=row><label style='margin-bottom:10px'>" + data.form[i].label + "</label><br /> <div id='radio'></div> </div>"
+           $("#Maindiv").append(append);
+                for (var j = 0; j < data.form[i].options.length;j++)
+                {
+                    $("#radio").append("<div class='form-check' style='margin-bottom:10px'><input class='form-check-input' type='radio' name='gender' value=" + data.form[i].options[j] + " id='flexRadioDefault1'><label class='form-check-label' for='flexRadioDefault1' >" + data.form[i].options[j] + "</label></div>");
+                }
+              
+
+            }
+
+            if (data.form[i].type == "checkbox") {
+                var append = "<div class=row><label style='margin-bottom:10px'>" + data.form[i].label + "</label><br /> <div id='check'></div> </div>"
+                $("#Maindiv").append(append);
+                for (var j = 0; j < data.form[i].options.length; j++) {
+                    $("#check").append("<div class='form-check' style='margin-bottom:10px'><input class='form-check-input' name='hobbies' type='checkbox' value=" + data.form[i].options[j] + " id='flexCheckDefault'><label class='form-check-label' for='flexCheckDefault' >" + data.form[i].options[j] + "</label></div>");
+                }
+
+
+            }
+    
+    }
+        var button = "<div class='row' ><div class='col-md-12' style='text-align:center'><button id='btnsubmit' class='btn btn-info' onclick='Save()'> Submit </button></div></div>"
+        $("#Maindiv").append(button)
+
+
+
+
+}
+</script>
